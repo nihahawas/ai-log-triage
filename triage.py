@@ -97,7 +97,10 @@ def load_cache():
             return data
 
     except (json.JSONDecodeError, OSError):
-        print("Warning: Cache file could not be read. Starting with empty cache.")
+        print(
+            "Warning: Cache file could not be read. "
+            "Starting with empty cache."
+        )
 
     return {}
 
@@ -135,9 +138,11 @@ Return ONLY valid JSON with exactly these four fields:
 Do not include Markdown, code fences, explanations, or any other fields.
 """
 
-    delays = [1, 2]
+    # Initial attempt + 3 retries.
+    # Wait 1 second, then 2 seconds, then 4 seconds.
+    retry_delays = [1, 2, 4]
 
-    for attempt in range(3):
+    for attempt in range(4):
         try:
             response = client.chat.completions.create(
                 model="gpt-5-mini",
@@ -149,7 +154,7 @@ Do not include Markdown, code fences, explanations, or any other fields.
                     {
                         "role": "user",
                         "content": prompt
-                    }
+                    },
                 ],
             )
 
@@ -167,13 +172,13 @@ Do not include Markdown, code fences, explanations, or any other fields.
             return validated_result
 
         except Exception as error:
-            if attempt == 2:
+            if attempt == 3:
                 raise error
 
-            delay = delays[attempt]
+            delay = retry_delays[attempt]
 
             print(
-                f"API call failed (attempt {attempt + 1}/3). "
+                f"API call failed (attempt {attempt + 1}/4). "
                 f"Retrying in {delay} seconds..."
             )
 
